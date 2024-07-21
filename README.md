@@ -33,24 +33,3 @@ The application prompts the user for the following inputs:
 1. **Book Ticket**: Books a ticket for a specific train and provides a PNR number.
 2. **Cancel Ticket**: Cancels a booked ticket and manages the waiting list.
 3. **View Ticket Status**: Displays the status of the booked tickets including PNR and current status.
-
-## Usage
-
-1. Clone the repository:
-    ```bash
-    git clone https://github.com/aravind1000/Railway_Ticket_Booking.git
-    ```
-
-2. Navigate to the project directory:
-    ```bash
-    cd Railway_Ticket_Booking
-    ```
-
-3. Run the application:
-    ```bash
-    python Railway.py
-    ```
-
-
-
-
