@@ -5,131 +5,165 @@ class BookTicket {
     int age;
     String boardingPoint;
     String destinationPoint;
-    int train_no;
-    int Pnr;
+    int trainNo;
+    int pnr;
 
     public BookTicket(String name, int age, String boardingPoint, String destinationPoint, int trainNo, int pnr) {
         this.name = name;
         this.age = age;
         this.boardingPoint = boardingPoint;
         this.destinationPoint = destinationPoint;
-        this.train_no = trainNo;
-        this.Pnr = pnr;
+        this.trainNo = trainNo;
+        this.pnr = pnr;
     }
-} 
+}
+
+class RailwayService {
+    private final Map<Integer, Map<Integer, BookTicket>> bookedTickets = new HashMap<>();
+    private final Map<Integer, BookTicket> waitingList = new LinkedHashMap<>();
+    private int pnrCounter = 4578;
+
+    public RailwayService() {
+        bookedTickets.put(1, new LinkedHashMap<>());
+        bookedTickets.put(2, new LinkedHashMap<>());
+        bookedTickets.put(3, new LinkedHashMap<>());
+    }
+
+    public void bookTicket(String name, int age, String boardingPoint, String destinationPoint, int trainNo) {
+        BookTicket ticket = new BookTicket(name, age, boardingPoint, destinationPoint, trainNo, pnrCounter);
+
+        int capacity = getTrainCapacity(trainNo);
+        if (bookedTickets.containsKey(trainNo) && bookedTickets.get(trainNo).size() < capacity) {
+            bookedTickets.get(trainNo).put(pnrCounter, ticket);
+            System.out.println("Ticket Booked Successfully. Your PNR is: " + pnrCounter);
+        } else {
+            waitingList.put(pnrCounter, ticket);
+            System.out.println("Train is full. Added to waiting list. Your PNR is: " + pnrCounter);
+        }
+
+        pnrCounter++;
+    }
+
+    public void cancelTicket(int trainNo, int pnr) {
+        if (bookedTickets.containsKey(trainNo) && bookedTickets.get(trainNo).remove(pnr) != null) {
+            handleWaitingList(trainNo);
+            System.out.println("Ticket Cancelled Successfully.");
+        } else if (waitingList.remove(pnr) != null) {
+            System.out.println("Ticket Cancelled Successfully from Waiting List.");
+        } else {
+            System.out.println("Invalid Train or PNR Number.");
+        }
+    }
+
+    public void viewStatus(int trainNo, int pnr) {
+        if (bookedTickets.containsKey(trainNo) && bookedTickets.get(trainNo).containsKey(pnr)) {
+            System.out.println("Passenger is booked in Train.");
+        } else if (waitingList.containsKey(pnr)) {
+            System.out.println("Passenger is in Waiting List.");
+        } else {
+            System.out.println("No record found for the provided Train and PNR Number.");
+        }
+    }
+
+    private int getTrainCapacity(int trainNo) {
+        switch (trainNo) {
+            case 1: return 5;
+            case 2: return 7;
+            case 3: return 3;
+            default: return 0;
+        }
+    }
+
+    private void handleWaitingList(int trainNo) {
+        if (!waitingList.isEmpty()) {
+            Iterator<Integer> iterator = waitingList.keySet().iterator();
+            if (iterator.hasNext()) {
+                int nextPnr = iterator.next();
+                BookTicket nextTicket = waitingList.remove(nextPnr);
+                bookedTickets.get(trainNo).put(nextPnr, nextTicket);
+            }
+        }
+    }
+}
 
 public class Railway {
-    public static void mainMenu() {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        RailwayService railwayService = new RailwayService();
+
+        while (true) {
+            displayMainMenu();
+            System.out.print("\nEnter your choice: ");
+            int choice = sc.nextInt();
+            sc.nextLine();
+
+            switch (choice) {
+                case 1:
+                    bookTicketMenu(sc, railwayService);
+                    break;
+                case 2:
+                    cancelTicketMenu(sc, railwayService);
+                    break;
+                case 3:
+                    viewStatusMenu(sc, railwayService);
+                    break;
+                case 4:
+                    System.out.println("Exiting System. Thank you!");
+                    return;
+                default:
+                    System.out.println("Invalid Option. Please try again.");
+            }
+        }
+    }
+
+    private static void displayMainMenu() {
+        System.out.println("\n===== Railway Reservation System =====");
         System.out.println("1. Book Ticket");
         System.out.println("2. Cancel Ticket");
         System.out.println("3. View Status");
         System.out.println("4. Exit");
     }
 
-    public static void trainDetails() {
-        System.out.println("\nTrains Details");
+    private static void bookTicketMenu(Scanner sc, RailwayService railwayService) {
+        System.out.print("Enter your name: ");
+        String name = sc.nextLine();
+        System.out.print("Enter your age: ");
+        int age = sc.nextInt();
+        sc.nextLine();
+
+        displayTrainDetails();
+        System.out.print("Enter your boarding point: ");
+        String boardingPoint = sc.nextLine();
+        System.out.print("Enter your destination point: ");
+        String destinationPoint = sc.nextLine();
+        System.out.print("Enter your train number: ");
+        int trainNo = sc.nextInt();
+
+        railwayService.bookTicket(name, age, boardingPoint, destinationPoint, trainNo);
+    }
+
+    private static void cancelTicketMenu(Scanner sc, RailwayService railwayService) {
+        System.out.print("Enter Train Number: ");
+        int trainNo = sc.nextInt();
+        System.out.print("Enter PNR Number: ");
+        int pnr = sc.nextInt();
+
+        railwayService.cancelTicket(trainNo, pnr);
+    }
+
+    private static void viewStatusMenu(Scanner sc, RailwayService railwayService) {
+        System.out.print("Enter Train Number: ");
+        int trainNo = sc.nextInt();
+        System.out.print("Enter PNR Number: ");
+        int pnr = sc.nextInt();
+
+        railwayService.viewStatus(trainNo, pnr);
+    }
+
+    private static void displayTrainDetails() {
+        System.out.println("\nTrain Details:");
         System.out.println("1. Kovai ---> Chennai");
         System.out.println("2. Ernakulam ---> Chennai");
         System.out.println("3. Coimbatore ---> Chennai");
-    }
-
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        System.out.println("\t\t\t\t\t\t\t\t\tWelcome to Railway System\n");
-        boolean check = true;
-        Map<Integer, Map<Integer, BookTicket>> bookDetails = new HashMap<>();
-        Map<Integer, BookTicket> waitingList = new LinkedHashMap<>();
-        int Pnr = 4578;
-
-        do {
-            mainMenu();
-            System.out.println("\nEnter your choice :");
-            int option = sc.nextInt();
-            sc.nextLine();
-
-            switch (option) {
-                case 1:
-                    System.out.println("Enter your name : ");
-                    String name = sc.nextLine();
-                    System.out.println("Enter your age : ");
-                    int age = sc.nextInt();
-                    sc.nextLine();
-                    trainDetails();
-                    System.out.println("\nEnter your boarding : ");
-                    String boarding_point = sc.nextLine();
-                    System.out.println("Enter your destination : ");
-                    String destination_point = sc.nextLine();
-
-                    System.out.println("Enter your train_no : ");
-                    int train_no = sc.nextInt();
-                    BookTicket book = new BookTicket(name, age, boarding_point, destination_point, train_no, Pnr);
-                    System.out.println();
-
-                    if (!bookDetails.containsKey(train_no)) {
-                        bookDetails.put(train_no, new LinkedHashMap<>());
-                    }
-
-                    boolean isBooked = false;
-                    if (train_no == 1 && bookDetails.get(train_no).size() < 5) {
-                        bookDetails.get(train_no).put(Pnr, book);
-                        isBooked = true;
-                    } else if (train_no == 2 && bookDetails.get(train_no).size() < 7) {
-                        bookDetails.get(train_no).put(Pnr, book);
-                        isBooked = true;
-                    } else if (train_no == 3 && bookDetails.get(train_no).size() < 3) {
-                        bookDetails.get(train_no).put(Pnr, book);
-                        isBooked = true;
-                    }
-
-                    if (!isBooked) {
-                        waitingList.put(Pnr, book);
-                        System.out.println("You're in the waiting List\n");
-                    }
-
-                    System.out.println("Your Unique PNR number : " + Pnr);
-                    System.out.println();
-                    Pnr++;
-                    break;
-
-                case 2:
-                    System.out.println("Enter the train_no: ");
-                    int train_num = sc.nextInt();
-                    System.out.println("Enter the PNR number: ");
-                    int pnr = sc.nextInt();
-                    if (bookDetails.containsKey(train_num) && bookDetails.get(train_num).containsKey(pnr)) {
-                        bookDetails.get(train_num).remove(pnr);
-                        if (!waitingList.isEmpty()) {
-                            Integer first = waitingList.keySet().iterator().next();
-                            BookTicket train = waitingList.remove(first);
-                            bookDetails.get(train.train_no).put(train.Pnr, train);
-                        }
-                        System.out.println("Ticket Cancelled");
-                    } else if (waitingList.containsKey(pnr)) {
-                        waitingList.remove(pnr);
-                        System.out.println("Ticket Cancelled");
-                    } else {
-                        System.out.println("Invalid train number or PNR number");
-                    }
-                    break;
-
-                case 3:
-                    System.out.println("Enter the train_no: ");
-                    int trainNo = sc.nextInt();
-                    System.out.println("Enter the PNR number: ");
-                    int getPnr = sc.nextInt();
-                    if (bookDetails.containsKey(trainNo) && bookDetails.get(trainNo).containsKey(getPnr)) {
-                        System.out.println("Passenger is in train");
-                    } else if (waitingList.containsKey(getPnr)) {
-                        System.out.println("Passenger is in the waiting list");
-                    } else {
-                        System.out.println("No passenger with this PNR number");
-                    }
-                    break;
-
-                default:
-                    check = false;
-                    break;
-            }
-        } while (check);
     }
 }
